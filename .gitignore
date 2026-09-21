@@ -1,0 +1,19 @@
+# Ambiente virtuale Python
+.venv/
+
+# Cache e file compilati Python
+__pycache__/
+*.pyc
+*.pyo
+
+# File generati dai test
+.pytest_cache/
+
+# Configurazione locale di PyCharm
+.idea/
+
+# File di log
+*.log
+
+# Variabili d'ambiente e configurazioni locali
+.env
