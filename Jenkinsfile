@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    // Jenkins esegue normalmente un checkout automatico.
+    // Lo disabilitiamo perché vogliamo mostrarlo esplicitamente come stage.
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
 
         stage('Checkout') {
@@ -32,6 +38,31 @@ pipeline {
             steps {
                 bat '''
                     docker build -t sentiment-analysis-devops:%BUILD_NUMBER% .
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                bat '''
+                    docker rm -f sentiment-analysis-api >nul 2>&1 || echo Container precedente non presente
+                    docker run -d --name sentiment-analysis-api -p 8000:8000 sentiment-analysis-devops:%BUILD_NUMBER%
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                powershell '''
+                    Start-Sleep -Seconds 3
+
+                    $response = Invoke-RestMethod -Uri "http://localhost:8000/health"
+
+                    if ($response.status -ne "ok") {
+                        throw "Health check fallito"
+                    }
+
+                    Write-Host "Health check completato: applicazione attiva"
                 '''
             }
         }
