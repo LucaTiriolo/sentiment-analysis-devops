@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+
     // Jenkins esegue normalmente un checkout automatico.
     // Lo disabilitiamo perché vogliamo mostrarlo esplicitamente come stage.
     options {
