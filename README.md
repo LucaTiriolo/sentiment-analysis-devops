@@ -11,3 +11,7 @@ Il progetto è nella fase iniziale di configurazione.
 
 ```http
 GET /
+
+## CI/CD
+
+La pipeline Jenkins esegue automaticamente test, build Docker, deploy e health check.
