@@ -290,3 +290,72 @@ Se `/metrics` restituisce:
 ```
 
 verificare quale processo sta realmente rispondendo sulla porta `8000`. È possibile che sia ancora attivo un vecchio container Docker che contiene una versione precedente dell'applicazione.
+
+### Dashboard Grafana
+
+È stata realizzata la dashboard:
+
+```text
+Sentiment Analysis Monitoring
+```
+
+La dashboard contiene i seguenti pannelli.
+
+#### Predizioni per sentiment
+
+Visualizza il numero di predizioni suddivise per classe:
+
+```promql
+sum by (sentiment) (predictions_total)
+```
+
+Visualizzazione utilizzata: `Pie chart`.
+
+#### Errori di predizione
+
+Visualizza il numero totale di errori verificatisi durante l'inferenza del modello:
+
+```promql
+sum(prediction_errors_total)
+```
+
+Visualizzazione utilizzata: `Stat`.
+
+#### Tempo medio di risposta di `/predict`
+
+Visualizza il tempo medio necessario per elaborare una richiesta di predizione:
+
+```promql
+1000 *
+sum(http_request_duration_seconds_sum{endpoint="/predict"})
+/
+sum(http_request_duration_seconds_count{endpoint="/predict"})
+```
+
+Il risultato è espresso in millisecondi.
+
+Visualizzazione utilizzata: `Stat`.
+
+#### Utilizzo CPU dell'API
+
+```promql
+100 * rate(process_cpu_seconds_total[1m])
+```
+
+Il valore rappresenta l'utilizzo recente della CPU da parte del processo Python.
+
+#### Memoria utilizzata dall'API
+
+```promql
+process_resident_memory_bytes / 1024 / 1024
+```
+
+Il risultato è espresso in MiB.
+
+### Persistenza della dashboard
+
+La configurazione esportata della dashboard Grafana è versionata nel repository:
+
+```text
+monitoring/grafana/dashboards/sentiment-analysis-monitoring.json
+```
