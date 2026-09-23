@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiamo il codice applicativo.
 COPY main.py .
 COPY model_service.py .
+COPY metrics.py .
 
 # Copiamo il modello di Sentiment Analysis.
 COPY model ./model
