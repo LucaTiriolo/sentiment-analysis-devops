@@ -1,5 +1,6 @@
 # Ambiente virtuale Python
 .venv/
+.venv-model-test/
 
 # Cache e file compilati Python
 __pycache__/
