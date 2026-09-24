@@ -38,10 +38,10 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+       stage('Docker Compose Build') {
             steps {
                 bat '''
-                    docker build -t sentiment-analysis-devops:%BUILD_NUMBER% .
+                    docker compose build
                 '''
             }
         }
@@ -49,8 +49,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 bat '''
-                    docker rm -f sentiment-analysis-api >nul 2>&1 || echo Container precedente non presente
-                    docker run -d --name sentiment-analysis-api -p 8000:8000 sentiment-analysis-devops:%BUILD_NUMBER%
+                    docker compose up -d --remove-orphans
                 '''
             }
         }

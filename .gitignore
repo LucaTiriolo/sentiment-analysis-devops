@@ -1,6 +1,7 @@
 # Ambiente virtuale Python
 .venv/
 .venv-model-test/
+.venv-jenkins/
 
 # Cache e file compilati Python
 __pycache__/

@@ -63,7 +63,7 @@
                       "group": "prometheus",
                       "version": "v0",
                       "datasource": {
-                        "name": "ffz3akm7k2t4we"
+                        "name": "prometheus"
                       },
                       "spec": {
                         "editorMode": "code",
@@ -146,7 +146,7 @@
                       "group": "prometheus",
                       "version": "v0",
                       "datasource": {
-                        "name": "ffz3akm7k2t4we"
+                        "name": "prometheus"
                       },
                       "spec": {
                         "editorMode": "code",
@@ -230,7 +230,7 @@
                       "group": "prometheus",
                       "version": "v0",
                       "datasource": {
-                        "name": "ffz3akm7k2t4we"
+                        "name": "prometheus"
                       },
                       "spec": {
                         "editorMode": "code",
@@ -315,7 +315,7 @@
                       "group": "prometheus",
                       "version": "v0",
                       "datasource": {
-                        "name": "ffz3akm7k2t4we"
+                        "name": "prometheus"
                       },
                       "spec": {
                         "editorMode": "code",
@@ -400,7 +400,7 @@
                       "group": "prometheus",
                       "version": "v0",
                       "datasource": {
-                        "name": "ffz3akm7k2t4we"
+                        "name": "prometheus"
                       },
                       "spec": {
                         "editorMode": "code",
