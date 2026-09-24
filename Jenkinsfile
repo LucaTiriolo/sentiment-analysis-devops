@@ -30,10 +30,18 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Unit Test') {
             steps {
                 bat '''
-                    .venv-jenkins\\Scripts\\python.exe -m pytest
+                    .venv-jenkins\\Scripts\\python.exe -m pytest test\\unit
+                '''
+            }
+        }
+
+        stage('Integration Test') {
+            steps {
+                bat '''
+                    .venv-jenkins\\Scripts\\python.exe -m pytest test\\integration
                 '''
             }
         }
