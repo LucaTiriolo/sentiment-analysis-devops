@@ -1,4 +1,6 @@
-import model_service
+import pytest
+
+from model_service import predict_sentiment, PredictionError
 
 
 class FakeModel:
@@ -7,6 +9,8 @@ class FakeModel:
     dal modello reale durante il test unitario.
     """
 
+    classes_ = ["negative", "neutral", "positive"]
+
     def predict(self, reviews):
         return ["positive"]
 
@@ -14,17 +18,36 @@ class FakeModel:
         return [[0.10, 0.20, 0.70]]
 
 
-def test_predict_sentiment(monkeypatch):
+def test_predict_sentiment():
     """
     Verifica che il servizio restituisca correttamente
-    sentimento e confidence.
+    sentimento e confidence senza utilizzare il modello reale.
     """
-
-    monkeypatch.setattr(model_service, "model", FakeModel())
-
-    sentiment, confidence = model_service.predict_sentiment(
-        "This is a test review."
+    sentiment, confidence = predict_sentiment(
+        "This is a test review.",
+        sentiment_model=FakeModel()
     )
 
     assert sentiment == "positive"
-    assert confidence == 0.70
+    assert confidence == pytest.approx(0.70)
+
+class FailingModel:
+    """
+    Modello fittizio che simula un errore interno
+    durante l'inferenza.
+    """
+
+    def predict(self, reviews):
+        raise RuntimeError("Errore simulato del modello")
+
+def test_predict_sentiment_wraps_model_error():
+    """
+    Verifica che qualsiasi errore generato dal modello
+    venga convertito nell'eccezione applicativa PredictionError.
+    """
+
+    with pytest.raises(PredictionError):
+        predict_sentiment(
+            "This review causes an error.",
+            sentiment_model=FailingModel()
+        )

@@ -1,27 +1,39 @@
 import time
+import logging
+
 
 from fastapi import FastAPI, HTTPException, Request
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, field_validator
 from starlette.responses import Response
+from typing import Literal
 
 from metrics import (
     HTTP_REQUEST_DURATION,
     PREDICTION_ERRORS,
     PREDICTIONS_TOTAL,
 )
-from model_service import predict_sentiment
+from model_service import (
+    ModelLoadError,
+    PredictionError,
+    load_model,
+    predict_sentiment,
+)
 
-
+logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Sentiment Analysis DevOps",
     description="API per il deploy e il monitoraggio di un modello di Sentiment Analysis",
-    version="0.3.0"
+    version="1.0.0"
 )
 
 
 class PredictionRequest(BaseModel):
-    review: str = Field(..., min_length=1)
+    review: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000
+    )
 
     @field_validator("review")
     @classmethod
@@ -38,38 +50,73 @@ class PredictionRequest(BaseModel):
 
 
 class PredictionResponse(BaseModel):
-    sentiment: str
-    confidence: float
+    sentiment: Literal["negative", "neutral", "positive"]
+    confidence: float = Field(..., ge=0.0, le=1.0)
 
 
 @app.middleware("http")
 async def collect_request_metrics(request: Request, call_next):
     """
     Misura il tempo impiegato da ogni richiesta HTTP.
+
+    La durata viene registrata anche nel caso in cui
+    l'elaborazione della richiesta generi un'eccezione
+    non gestita.
     """
     start_time = time.perf_counter()
+    status_code = 500
 
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
 
-    duration = time.perf_counter() - start_time
+        return response
 
-    HTTP_REQUEST_DURATION.labels(
-        method=request.method,
-        endpoint=request.url.path,
-        status_code=response.status_code
-    ).observe(duration)
+    finally:
+        duration = time.perf_counter() - start_time
 
-    return response
+        HTTP_REQUEST_DURATION.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status_code=status_code
+        ).observe(duration)
 
 
 @app.get("/")
-def hello_world():
-    return {"message": "Hello World"}
+def application_info():
+    """
+    Restituisce le informazioni principali del servizio.
+    """
+    return {
+        "service": "Sentiment Analysis API",
+        "version": "1.0.0",
+        "status": "running"
+    }
 
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    """
+    Verifica che l'API sia attiva e che il modello
+    di Sentiment Analysis sia disponibile.
+    """
+    try:
+        load_model()
+
+        return {
+            "status": "ok",
+            "model": "loaded"
+        }
+
+    except ModelLoadError as exc:
+        logger.exception(
+            "Il modello di Sentiment Analysis non è disponibile"
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Modello non disponibile"
+        ) from exc
 
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -86,14 +133,29 @@ def predict(request: PredictionRequest):
             confidence=confidence
         )
 
-    except Exception as exc:
+    except ModelLoadError as exc:
         PREDICTION_ERRORS.inc()
+
+        logger.exception(
+            "Il modello di Sentiment Analysis non è disponibile"
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Modello non disponibile"
+        ) from exc
+
+    except PredictionError as exc:
+        PREDICTION_ERRORS.inc()
+
+        logger.exception(
+            "Errore durante la predizione della recensione"
+        )
 
         raise HTTPException(
             status_code=500,
             detail="Errore durante la predizione"
         ) from exc
-
 
 @app.get("/metrics")
 def metrics():

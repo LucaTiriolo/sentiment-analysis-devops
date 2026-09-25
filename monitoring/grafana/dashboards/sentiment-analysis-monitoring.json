@@ -196,7 +196,7 @@
                         "color": "green"
                       },
                       {
-                        "value": 80,
+                        "value": 1,
                         "color": "red"
                       }
                     ]
@@ -254,7 +254,7 @@
             "version": "13.2.2",
             "spec": {
               "options": {
-                "colorMode": "value",
+                "colorMode": "none",
                 "graphMode": "area",
                 "justifyMode": "auto",
                 "orientation": "auto",
@@ -272,23 +272,7 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "ms",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
+                  "unit": "ms"
                 },
                 "overrides": []
               }
@@ -300,7 +284,7 @@
         "kind": "Panel",
         "spec": {
           "id": 4,
-          "title": "Utilizzo CPU API",
+          "title": "Utilizzo CPU processo API",
           "description": "",
           "links": [],
           "data": {
@@ -339,7 +323,7 @@
             "version": "13.2.2",
             "spec": {
               "options": {
-                "colorMode": "value",
+                "colorMode": "none",
                 "graphMode": "area",
                 "justifyMode": "auto",
                 "orientation": "auto",
@@ -357,23 +341,7 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "percent",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
+                  "unit": "percent"
                 },
                 "overrides": []
               }
@@ -385,7 +353,7 @@
         "kind": "Panel",
         "spec": {
           "id": 5,
-          "title": "Memoria API",
+          "title": "Memoria residente processo API",
           "description": "",
           "links": [],
           "data": {
@@ -442,24 +410,7 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "MiB",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "blue"
-                  }
+                  "unit": "MiB"
                 },
                 "overrides": []
               }
@@ -548,7 +499,7 @@
       "timezone": "browser",
       "from": "now-6h",
       "to": "now",
-      "autoRefresh": "",
+      "autoRefresh": "5s",
       "autoRefreshIntervals": [
         "5s",
         "10s",

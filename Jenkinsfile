@@ -9,6 +9,8 @@ pipeline {
     // Lo disabilitiamo perché vogliamo mostrarlo esplicitamente come stage.
     options {
         skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout(time: 15, unit: 'MINUTES')
     }
 
     stages {
@@ -22,8 +24,8 @@ pipeline {
         stage('Setup Python') {
             steps {
                 bat '''
-                    python --version
-                    python -m venv .venv-jenkins
+                    py -3.14 --version
+                    py -3.14 -m venv .venv-jenkins
                     .venv-jenkins\\Scripts\\python.exe -m pip install --upgrade pip
                     .venv-jenkins\\Scripts\\python.exe -m pip install -r requirements.txt
                 '''
@@ -65,15 +67,109 @@ pipeline {
         stage('Health Check') {
             steps {
                 powershell '''
-                    Start-Sleep -Seconds 3
+                    $maxAttempts = 10
+                    $delaySeconds = 2
 
-                    $response = Invoke-RestMethod -Uri "http://localhost:8000/health"
+                    # -----------------------------
+                    # FastAPI
+                    # -----------------------------
+                    $apiHealthy = $false
 
-                    if ($response.status -ne "ok") {
-                        throw "Health check fallito"
+                    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                        try {
+                            Write-Host "FastAPI health check - tentativo $attempt/$maxAttempts"
+
+                            $response = Invoke-RestMethod `
+                                -Uri "http://localhost:8000/health" `
+                                -TimeoutSec 5
+
+                            if ($response.status -eq "ok") {
+                                Write-Host "FastAPI pronta"
+                                $apiHealthy = $true
+                                break
+                            }
+                        }
+                        catch {
+                            Write-Host "FastAPI non ancora disponibile: $($_.Exception.Message)"
+                        }
+
+                        if ($attempt -lt $maxAttempts) {
+                            Start-Sleep -Seconds $delaySeconds
+                        }
                     }
 
-                    Write-Host "Health check completato: applicazione attiva"
+                    if (-not $apiHealthy) {
+                        throw "Health check FastAPI fallito"
+                    }
+
+
+                    # -----------------------------
+                    # Prometheus
+                    # -----------------------------
+                    $prometheusHealthy = $false
+
+                    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                        try {
+                            Write-Host "Prometheus health check - tentativo $attempt/$maxAttempts"
+
+                            $response = Invoke-WebRequest `
+                                -Uri "http://localhost:9090/-/ready" `
+                                -UseBasicParsing `
+                                -TimeoutSec 5
+
+                            if ($response.StatusCode -eq 200) {
+                                Write-Host "Prometheus pronto"
+                                $prometheusHealthy = $true
+                                break
+                            }
+                        }
+                        catch {
+                            Write-Host "Prometheus non ancora disponibile: $($_.Exception.Message)"
+                        }
+
+                        if ($attempt -lt $maxAttempts) {
+                            Start-Sleep -Seconds $delaySeconds
+                        }
+                    }
+
+                    if (-not $prometheusHealthy) {
+                        throw "Health check Prometheus fallito"
+                    }
+
+
+                    # -----------------------------
+                    # Grafana
+                    # -----------------------------
+                    $grafanaHealthy = $false
+
+                    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                        try {
+                            Write-Host "Grafana health check - tentativo $attempt/$maxAttempts"
+
+                            $response = Invoke-RestMethod `
+                                -Uri "http://localhost:3000/api/health" `
+                                -TimeoutSec 5
+
+                            if ($response.database -eq "ok") {
+                                Write-Host "Grafana pronta"
+                                $grafanaHealthy = $true
+                                break
+                            }
+                        }
+                        catch {
+                            Write-Host "Grafana non ancora disponibile: $($_.Exception.Message)"
+                        }
+
+                        if ($attempt -lt $maxAttempts) {
+                            Start-Sleep -Seconds $delaySeconds
+                        }
+                    }
+
+                    if (-not $grafanaHealthy) {
+                        throw "Health check Grafana fallito"
+                    }
+
+                    Write-Host "Health check completato: intero stack operativo"
                 '''
             }
         }

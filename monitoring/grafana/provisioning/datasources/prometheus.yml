@@ -7,4 +7,4 @@ datasources:
     url: http://prometheus:9090
     uid: prometheus
     isDefault: true
-    editable: true
+    editable: false

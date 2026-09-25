@@ -1,4 +1,4 @@
-FROM python:3.14-slim
+FROM python:3.14.7-slim
 
 WORKDIR /app
 
@@ -14,6 +14,11 @@ COPY metrics.py .
 
 # Copiamo il modello di Sentiment Analysis.
 COPY model ./model
+
+# Eseguiamo l'applicazione con un utente non privilegiato.
+RUN useradd --create-home --shell /usr/sbin/nologin appuser
+
+USER appuser
 
 EXPOSE 8000
 

@@ -1,8 +1,29 @@
+# Ambienti virtuali Python
 .venv/
-.idea/
+.venv-jenkins/
+.venv-model-test/
+
+# Cache Python
 __pycache__/
-.pytest_cache/
-.git/
+**/__pycache__/
 *.pyc
-*.log
+**/*.pyc
+.pytest_cache/
+
+# IDE
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Configurazioni e file locali
 .env
+*.log
+
+# File non necessari nell'immagine dell'API
+test/
+monitoring/
+README.md
+Jenkinsfile
+compose.yaml
