@@ -38,7 +38,7 @@ def test_health_check_model_unavailable(monkeypatch):
         raise ModelLoadError("Errore simulato nel caricamento del modello")
 
     monkeypatch.setattr(
-        "main.load_model",
+        "routers.system.load_model",
         raise_model_load_error
     )
 
@@ -127,35 +127,35 @@ def get_prediction_errors_total() -> float:
 
 def test_prediction_error_increments_metric(monkeypatch):
     """
-    Verifica che un errore durante l'inferenza:
-    - restituisca HTTP 500;
-    - incrementi la metrica prediction_errors_total.
+    Verifica che un errore durante la predizione incrementi
+    la metrica prediction_errors_total.
     """
 
+    initial_errors = get_prediction_errors_total()
+
     def raise_prediction_error(review: str):
-        raise PredictionError("Errore simulato durante la predizione")
+        raise PredictionError(
+            "Errore simulato durante la predizione"
+        )
 
     monkeypatch.setattr(
-        "main.predict_sentiment",
+        "routers.prediction.predict_sentiment",
         raise_prediction_error
     )
 
-    errors_before = get_prediction_errors_total()
-
     response = client.post(
         "/predict",
-        json={"review": "This review causes a simulated error."}
+        json={"review": "This is a valid review."}
     )
-
-    errors_after = get_prediction_errors_total()
 
     assert response.status_code == 500
     assert response.json() == {
         "detail": "Errore durante la predizione"
     }
 
-    assert errors_after == errors_before + 1
+    final_errors = get_prediction_errors_total()
 
+    assert final_errors == initial_errors + 1
 
 def test_predict_review_too_long():
     """
@@ -181,7 +181,7 @@ def test_predict_model_unavailable(monkeypatch):
         )
 
     monkeypatch.setattr(
-        "main.predict_sentiment",
+        "routers.prediction.predict_sentiment",
         raise_model_load_error
     )
 
