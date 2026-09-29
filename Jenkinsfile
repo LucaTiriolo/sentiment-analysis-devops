@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        NOTIFICATION_EMAIL = 'luca.tiriolo@gmail.com'
+    }
+
     triggers {
         pollSCM('H/2 * * * *')
     }
@@ -189,7 +193,7 @@ pipeline {
                     URL build:
                     ${env.BUILD_URL}
                 """,
-                to: 'luca.tiriolo@gmail.com'
+                to: "${env.NOTIFICATION_EMAIL}"
             )
         }
 
@@ -206,7 +210,7 @@ pipeline {
                     Controllare i log:
                     ${env.BUILD_URL}
                 """,
-                to: 'luca.tiriolo@gmail.com'
+                to: "${env.NOTIFICATION_EMAIL}"
             )
         }
     }
